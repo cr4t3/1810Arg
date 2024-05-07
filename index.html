@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chrome Dino Game</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f0f0f0;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="600" height="200"></canvas>
+  <script>
+    
+    let percentage = 0;
+    let velocity = 0;
+
+    function getPercentage() {
+      fetch('http://127.0.0.1:5000/percentage')
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Failed to fetch percentage');
+          }
+          return response.text();
+      })
+      .then(data => console.log('Percentage:', data))
+      .catch(error => {
+          console.error('Error:', error);
+          console.log('Defaulting percentage to 30');
+          percentage = 30;
+      });
+  }
+
+  function getVelocity() {
+      fetch('http://127.0.0.1:5000/vel')
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Failed to fetch velocity');
+          }
+          return response.text();
+      })
+      .then(data => console.log('Velocity:', data))
+      .catch(error => {
+          console.error('Error:', error);
+          console.log('Defaulting velocity to 0.5');
+          velocity = 0.5;
+      });
+  }
+
+  function getScore() {
+      fetch('http://127.0.0.1:5000/score')
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Failed to fetch score');
+          }
+          return response.text();
+      })
+      .then(data => console.log('Score:', data))
+      .catch(error => {
+          console.error('Error:', error);
+          console.log('Defaulting score to 0.25');
+          // Default score to 0.25
+          // Your logic to set score to 0.25
+      });
+  }
+
+  function getSpawnVelocity() {
+      fetch('http://127.0.0.1:5000/spawn')
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Failed to fetch spawn velocity');
+          }
+          return response.text();
+      })
+      .then(data => console.log('Spawn velocity:', data))
+      .catch(error => {
+          console.error('Error:', error);
+          console.log('Defaulting spawn velocity to 500');
+          // Default spawn velocity to 500
+          // Your logic to set spawn velocity to 500
+      });
+  }
+
+  function getHighscore() {
+      fetch('http://127.0.0.1:5000/highscore')
+      .then(response => {
+          if (!response.ok) {
+              throw new Error('Failed to fetch highscore');
+          }
+          return response.text();
+      })
+      .then(data => console.log('Highscore:', data))
+      .catch(error => {
+          console.error('Error:', error);
+          console.log('Highscore not available');
+          // Handle default highscore logic here if needed
+      });
+  }
+
+
+
+
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Load image files
+    const backgroundImage200 = new Image();
+    backgroundImage200.src = 'bg200.png';
+
+    const backgroundImage800 = new Image();
+    backgroundImage800.src = 'bg800.png';
+
+    const dinoImage = new Image();
+    dinoImage.src = 'player.png';
+
+    const cactusImage = new Image();
+    cactusImage.src = 'obstacle.png';
+
+    let targetOpacity = 1; // Target opacity
+    let opacityIncrement = 0.005; // Opacity increment
+
+    let opacity = 0;
+
+    function between(number, x, y){
+      return number >= x && number <= y;
+    }
+
+    let dino = {
+      x: 50,
+      y: 150,
+      width: 40,
+      height: 40,
+      speed: 5,
+      jumpForce: 11.5,
+      gravity: 1,
+      isJumping: false,
+      isDead: false
+    };
+
+
+
+    let obstacles = [];
+    let score = 0;
+    let highscore = 0;
+    let oldhighscore = 0;
+
+    function drawBackground() {
+      if (between(score, 150, 200)){
+        opacity += opacity >= 0 && opacity <= 1 ? opacityIncrement : 0;
+        if (between(score, 150, 200)){
+          ctx.globalAlpha = 1-opacity; // Set opacity
+          ctx.drawImage(backgroundImage200, 0, 0, canvas.width, canvas.height);
+        } else {
+          console.log("a");
+          ctx.globalAlpha = 1; // Set opacity
+          ctx.drawImage(backgroundImage200, 0, 0, canvas.width, canvas.height);
+        }
+        ctx.globalAlpha = opacity; // Set opacity
+        ctx.drawImage(backgroundImage800, 0, 0, canvas.width, canvas.height);
+    } else if (score <= 150) {
+      ctx.globalAlpha = 1; // Set opacity
+      ctx.drawImage(backgroundImage200, 0, 0, canvas.width, canvas.height);
+    } else {
+      ctx.globalAlpha = 1; // Set opacity
+      ctx.drawImage(backgroundImage800, 0, 0, canvas.width, canvas.height);
+    }}
+
+    function drawDino() {
+      ctx.globalAlpha = 1; // Reset opacity for other elements
+      ctx.drawImage(dinoImage, dino.x, dino.y, dino.width, dino.height);
+    }
+
+    function drawObstacles() {
+      ctx.globalAlpha = 1; // Reset opacity for other elements
+      obstacles.forEach(obstacle => {
+        ctx.drawImage(cactusImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+      });
+    }
+
+    // Function to get highscore from API
+    function getHighscore() {
+      fetch('http://127.0.0.1:5000/highscore')
+        .then(response => response.json())
+        .then(data => {
+          highscore = Math.round(data);
+          oldhighscore = highscore;
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    function saveHighscore() {
+      fetch('http://127.0.0.1:5000/highscore/' + Math.round(highscore), { method: 'POST' })
+        .then(response => response.json())
+        .then(data => console.log('Highscore saved:', data))
+        .catch(error => console.error('Error:', error));
+    }
+
+
+    getHighscore(); // Get initial highscore
+
+    function drawScore() {
+      ctx.fillStyle = '#eee';
+      ctx.font = '20px Arial';
+      ctx.fillText('Score: ' + parseInt(score), 10, 30);
+      ctx.fillText('Highscore: ' + parseInt(highscore), 10, 60);
+    }
+
+    function checkCollision() {
+        obstacles.forEach(obstacle => {
+            // Calculate the bounding box of the dinosaur sprite
+            const dinoBoundingBox = {
+            left: dino.x,
+            right: dino.x + dino.width,
+            top: dino.y,
+            bottom: dino.y + dino.height
+            };
+
+            // Calculate the bounding box of the obstacle
+            const obstacleBoundingBox = {
+            left: obstacle.x,
+            right: obstacle.x + obstacle.width,
+            top: obstacle.y,
+            bottom: obstacle.y + obstacle.height
+            };
+
+            // Check for collision between the bounding boxes
+            if (
+            dinoBoundingBox.right > obstacleBoundingBox.left &&
+            dinoBoundingBox.left < obstacleBoundingBox.right &&
+            dinoBoundingBox.bottom > obstacleBoundingBox.top &&
+            dinoBoundingBox.top < obstacleBoundingBox.bottom
+            ) {
+            dino.isDead = true;
+            if (score > highscore) {
+                highscore = score;
+                saveHighscore(); // Save highscore if beaten
+            }
+            }
+        });
+        }
+    function restartGame() {
+      window.location.reload();
+    }
+
+    function random(min, max) {
+        return Math.floor(Math.random() * (max - min) ) + min;
+    }
+
+    function update() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackground();
+      drawDino();
+      drawObstacles();
+      drawScore();
+      checkCollision();
+      console.log(dino.isDead)
+      if (dino.isDead) {
+        alert(Math.round(score) > oldhighscore ? "Rompiste el mayor puntaje! El anterior record era de " + oldhighscore + " y el tuyo es de " + Math.round(score) + "!" : "Tu puntaje fue de " + Math.round(score));
+        restartGame();
+        return; // Stop the game if the dino is dead
+      }
+
+      score = score + 0.25
+      if (score % 100 === 0) { // Increase speed every 100 points
+        dino.speed += 0.5;
+      }
+
+      if (dino.isJumping) {
+        dino.y -= dino.jumpForce;
+        dino.jumpForce -= dino.gravity;
+        if (dino.y >= 150) {
+          dino.y = 150;
+          dino.isJumping = false;
+          dino.jumpForce = 13.5;
+        }
+      }
+
+      obstacles.forEach(obstacle => {
+        obstacle.x -= dino.speed;
+        if (obstacle.x + obstacle.width < 0) {
+          obstacles.shift();
+        }
+      });
+
+      requestAnimationFrame(update);
+    }
+
+    function jump() {
+      if (!dino.isJumping && !dino.isDead) {
+        dino.isJumping = true;
+        dino.jumpForce = 11.5;
+      }
+    }
+
+    function generateObstacle() {
+        if (random(0, 100) <= 30){
+            const obstacle = {
+                x: canvas.width,
+                y: 150,
+                width: 20,
+                height: 40
+            };
+            obstacles.push(obstacle);
+        }
+    }
+
+    setInterval(generateObstacle, 500);
+    update();
+
+    document.addEventListener('keydown', event => {
+      if (event.code === 'Space') {
+        jump();
+      }
+    });
+  </script>
+</body>
+</html>
