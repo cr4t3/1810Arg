@@ -24,7 +24,7 @@
     let velocity = 0;
 
     function getPercentage() {
-      fetch('http://127.0.0.1:5000/percentage')
+      fetch('https://elcrate.pythonanywhere.com/percentage')
       .then(response => {
           if (!response.ok) {
               throw new Error('Failed to fetch percentage');
@@ -40,7 +40,7 @@
   }
 
   function getVelocity() {
-      fetch('http://127.0.0.1:5000/vel')
+      fetch('https://elcrate.pythonanywhere.com/vel')
       .then(response => {
           if (!response.ok) {
               throw new Error('Failed to fetch velocity');
@@ -56,7 +56,7 @@
   }
 
   function getScore() {
-      fetch('http://127.0.0.1:5000/score')
+      fetch('https://elcrate.pythonanywhere.com/score')
       .then(response => {
           if (!response.ok) {
               throw new Error('Failed to fetch score');
@@ -73,7 +73,7 @@
   }
 
   function getSpawnVelocity() {
-      fetch('http://127.0.0.1:5000/spawn')
+      fetch('https://elcrate.pythonanywhere.com/spawn')
       .then(response => {
           if (!response.ok) {
               throw new Error('Failed to fetch spawn velocity');
@@ -90,7 +90,7 @@
   }
 
   function getHighscore() {
-      fetch('http://127.0.0.1:5000/highscore')
+      fetch('https://elcrate.pythonanywhere.com/highscore')
       .then(response => {
           if (!response.ok) {
               throw new Error('Failed to fetch highscore');
@@ -105,10 +105,6 @@
       });
   }
 
-
-
-
-
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -119,6 +115,9 @@
     const backgroundImage800 = new Image();
     backgroundImage800.src = 'bg800.png';
 
+    const backgroundImage1400 = new Image();
+    backgroundImage1400.src = 'bg1400.png'
+
     const dinoImage = new Image();
     dinoImage.src = 'player.png';
 
@@ -128,7 +127,8 @@
     let targetOpacity = 1; // Target opacity
     let opacityIncrement = 0.005; // Opacity increment
 
-    let opacity = 0;
+    let opacity1 = 0;
+    let opacity2 = 0;;
 
     function between(number, x, y){
       return number >= x && number <= y;
@@ -146,33 +146,35 @@
       isDead: false
     };
 
-
-
     let obstacles = [];
     let score = 0;
     let highscore = 0;
     let oldhighscore = 0;
 
     function drawBackground() {
+      console.log(score <= 150)
       if (between(score, 150, 200)){
-        opacity += opacity >= 0 && opacity <= 1 ? opacityIncrement : 0;
-        if (between(score, 150, 200)){
-          ctx.globalAlpha = 1-opacity; // Set opacity
-          ctx.drawImage(backgroundImage200, 0, 0, canvas.width, canvas.height);
-        } else {
-          console.log("a");
-          ctx.globalAlpha = 1; // Set opacity
-          ctx.drawImage(backgroundImage200, 0, 0, canvas.width, canvas.height);
-        }
-        ctx.globalAlpha = opacity; // Set opacity
+        opacity1 += opacity1 >= 0 && opacity1 <= 1 ? opacityIncrement : 0;
+        ctx.globalAlpha = 1-opacity1; // Set opacity
+        ctx.drawImage(backgroundImage200, 0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = opacity1; // Set opacity
         ctx.drawImage(backgroundImage800, 0, 0, canvas.width, canvas.height);
-    } else if (score <= 150) {
-      ctx.globalAlpha = 1; // Set opacity
-      ctx.drawImage(backgroundImage200, 0, 0, canvas.width, canvas.height);
-    } else {
-      ctx.globalAlpha = 1; // Set opacity
-      ctx.drawImage(backgroundImage800, 0, 0, canvas.width, canvas.height);
-    }}
+      } else if (between(score, 350, 400)){
+        opacity2 += opacity2 >= 0 && opacity2 <= 1 ? opacityIncrement : 0;
+        ctx.globalAlpha = 1-opacity2; // Set opacity
+        ctx.drawImage(backgroundImage800, 0, 0, canvas.width, canvas.height);
+        ctx.globalAlpha = opacity2; // Set opacity
+        ctx.drawImage(backgroundImage1400, 0, 0, canvas.width, canvas.height);
+      } else if (score >= 400) {
+        ctx.globalAlpha = 1; // Set opacity
+        ctx.drawImage(backgroundImage1400, 0, 0, canvas.width, canvas.height);
+      } else if (between(score, 0, 150)) {
+        ctx.globalAlpha = 1; // Set opacity
+        ctx.drawImage(backgroundImage200, 0, 0, canvas.width, canvas.height);
+      } else if (between(score, 200, 350)){
+        ctx.globalAlpha = 1; // Set opacity
+        ctx.drawImage(backgroundImage800, 0, 0, canvas.width, canvas.height);
+      }}
 
     function drawDino() {
       ctx.globalAlpha = 1; // Reset opacity for other elements
@@ -188,7 +190,7 @@
 
     // Function to get highscore from API
     function getHighscore() {
-      fetch('http://127.0.0.1:5000/highscore')
+      fetch('https://elcrate.pythonanywhere.com/highscore')
         .then(response => response.json())
         .then(data => {
           highscore = Math.round(data);
@@ -198,7 +200,7 @@
     }
 
     function saveHighscore() {
-      fetch('http://127.0.0.1:5000/highscore/' + Math.round(highscore), { method: 'POST' })
+      fetch('https://elcrate.pythonanywhere.com/highscore/' + Math.round(highscore), { method: 'POST' })
         .then(response => response.json())
         .then(data => console.log('Highscore saved:', data))
         .catch(error => console.error('Error:', error));
@@ -208,7 +210,7 @@
     getHighscore(); // Get initial highscore
 
     function drawScore() {
-      ctx.fillStyle = '#eee';
+      ctx.fillStyle = '#000';
       ctx.font = '20px Arial';
       ctx.fillText('Score: ' + parseInt(score), 10, 30);
       ctx.fillText('Highscore: ' + parseInt(highscore), 10, 60);
