@@ -152,7 +152,7 @@
     let oldhighscore = 0;
 
     function drawBackground() {
-      console.log(score <= 150)
+      //console.log(score <= 150)
       if (between(score, 150, 200)){
         opacity1 += opacity1 >= 0 && opacity1 <= 1 ? opacityIncrement : 0;
         ctx.globalAlpha = 1-opacity1; // Set opacity
@@ -200,10 +200,12 @@
     }
 
     function saveHighscore() {
-      fetch('https://elcrate.pythonanywhere.com/highscore/' + Math.round(highscore), { method: 'POST' })
+      if (highscore > 0) {
+        fetch('https://elcrate.pythonanywhere.com/highscore/' + Math.round(highscore), { method: 'POST' })
         .then(response => response.json())
         .then(data => console.log('Highscore saved:', data))
         .catch(error => console.error('Error:', error));
+      }
     }
 
 
@@ -250,7 +252,7 @@
         });
         }
     function restartGame() {
-      window.location.href = "https://cr4t3.github.io/1810Arg/"
+      window.location.href = "file:///C:/Users/Estudiante/Desktop/1810Arg-main/index.html" //"https://cr4t3.github.io/1810Arg/"
     }
 
     function random(min, max) {
@@ -264,7 +266,7 @@
       drawObstacles();
       drawScore();
       checkCollision();
-      console.log(dino.isDead)
+      //console.log(dino.isDead)
       if (dino.isDead) {
         alert(Math.round(score) > oldhighscore ? "Rompiste el record! El anterior record era de " + oldhighscore + " y el tuyo es de " + Math.round(score) + "!" : "Tu puntaje fue de " + Math.round(score));
         restartGame();
@@ -319,7 +321,8 @@
     update();
 
     document.addEventListener('keydown', event => {
-      if (event.code === 'Space') {
+      console.error(event.code)
+      if (event.code === 'Space' || event.code == "ArrowUp") {
         jump();
       }
     });
