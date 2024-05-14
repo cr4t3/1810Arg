@@ -212,8 +212,8 @@
     function drawScore() {
       ctx.fillStyle = '#000';
       ctx.font = '20px Arial';
-      ctx.fillText('Score: ' + parseInt(score), 10, 30);
-      ctx.fillText('Highscore: ' + parseInt(highscore), 10, 60);
+      ctx.fillText('Puntaje: ' + parseInt(score), 10, 30);
+      ctx.fillText('Record: ' + parseInt(highscore), 10, 60);
     }
 
     function checkCollision() {
@@ -266,7 +266,7 @@
       checkCollision();
       console.log(dino.isDead)
       if (dino.isDead) {
-        alert(Math.round(score) > oldhighscore ? "Rompiste el mayor puntaje! El anterior record era de " + oldhighscore + " y el tuyo es de " + Math.round(score) + "!" : "Tu puntaje fue de " + Math.round(score));
+        alert(Math.round(score) > oldhighscore ? "Rompiste el record! El anterior record era de " + oldhighscore + " y el tuyo es de " + Math.round(score) + "!" : "Tu puntaje fue de " + Math.round(score));
         restartGame();
         return; // Stop the game if the dino is dead
       }
