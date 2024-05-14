@@ -22,6 +22,7 @@
     
     let percentage = 0;
     let velocity = 0;
+    let loaded = false;
 
     function getPercentage() {
       fetch('https://elcrate.pythonanywhere.com/percentage')
@@ -95,6 +96,7 @@
           if (!response.ok) {
               throw new Error('Failed to fetch highscore');
           }
+          loaded = true;
           return response.text();
       })
       .then(data => console.log('Highscore:', data))
@@ -200,7 +202,7 @@
     }
 
     function saveHighscore() {
-      if (highscore > 0) {
+      if (loaded) {
         fetch('https://elcrate.pythonanywhere.com/highscore/' + Math.round(highscore), { method: 'POST' })
         .then(response => response.json())
         .then(data => console.log('Highscore saved:', data))
@@ -321,12 +323,11 @@
     update();
 
     document.addEventListener('keydown', event => {
-      console.error(event.code)
       if (event.code === 'Space' || event.code == "ArrowUp") {
         jump();
       }
     });
   </script>
-  <p>Juego disponible unicamente para PCs. Presiona 'ESPACIO' para saltar</p>
+  <p>Juego disponible unicamente para PCs. Presiona 'ESPACIO' o 'FLECHA ARRIBA' para saltar</p>
 </body>
 </html>
